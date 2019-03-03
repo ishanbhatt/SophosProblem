@@ -5,10 +5,25 @@ import java.text.SimpleDateFormat
 import java.util.TimeZone
 
 import scala.util.matching.Regex
+import net.lingala.zip4j.core.ZipFile
+
+import scala.io.Source
 
 object Runner {
 
   val base_url = "http://mbd.hu/uris/"
+  var all_urls: Array[String] = Array()
+
+  def extract_url_append_list(zipPath: String) = {
+    val zipFile: ZipFile = new ZipFile(zipPath)
+    zipFile.setPassword(zipPath)
+    val currentPath = new File(".").getCanonicalPath
+    zipFile.extractAll(currentPath)
+    val lines = Source.fromFile("urilist.txt").getLines().toArray
+    all_urls ++ lines
+    new File("urilist.txt").delete()
+  }
+
   case class StringTimeStamp(str: String) {
 
     val pattern = new Regex("[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}")
@@ -40,7 +55,7 @@ object Runner {
     var newEpoch = ""
     var url = ""
 
-    for (_ <- 1 until(50)){
+    for (_ <- 1 until(200)){
       text = scala.io.Source.fromURL(base_url).mkString
       newEpoch = text.getEpoch
 
