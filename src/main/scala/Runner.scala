@@ -17,10 +17,9 @@ object Runner {
   def extract_url_append_list(zipPath: String) = {
     val zipFile: ZipFile = new ZipFile(zipPath)
     zipFile.setPassword(zipPath)
-    val currentPath = new File(".").getCanonicalPath
-    zipFile.extractAll(currentPath)
+    zipFile.extractAll(new File(".").getCanonicalPath)
     val lines = Source.fromFile("urilist.txt").getLines().toArray
-    all_urls ++ lines
+    all_urls = all_urls ++ lines
     new File("urilist.txt").delete()
   }
 
@@ -55,7 +54,7 @@ object Runner {
     var newEpoch = ""
     var url = ""
 
-    for (_ <- 1 until(200)){
+    for (i <- 1 until(200)){
       text = scala.io.Source.fromURL(base_url).mkString
       newEpoch = text.getEpoch
 
@@ -70,11 +69,29 @@ object Runner {
         thread.start
       }
       else {
-        println("Epoch hasn't changed not doing another download")
+        println(s"Epoch hasn't changed not doing another download for iteration $i")
         Thread.sleep(2000)
       }
-
     }
+    passwordZipped map extract_url_append_list
 
+    val mostCommonUri = all_urls.groupBy(identity).mapValues(_.size).maxBy(_._2)._1
+//    scala> val s = Seq("apple", "oranges", "apple", "banana", "apple", "oranges", "oranges")
+//    s: Seq[String] = List(apple, oranges, apple, banana, apple, oranges, oranges)
+//
+//    scala> s.groupBy(identity)
+//    res0: scala.collection.immutable.Map[String,Seq[String]] = Map(banana -> List(banana), oranges -> List(oranges, oranges, oranges), apple -> List(apple, apple, apple))
+//
+      // We can groupBy anything say _.head(First Char), _.length(Size of the word) , _.sort(Anagram calculation maybe)
+//    scala> s.groupBy(identity).mapValues(_.size)
+//    res1: scala.collection.immutable.Map[String,Int] = Map(banana -> 1, oranges -> 3, apple -> 3)
+//
+//    scala> s.groupBy(identity).mapValues(_.size).maxBy(_._2)
+//    res2: (String, Int) = (oranges,3)
+//
+//    scala> s.groupBy(identity).mapValues(_.size).maxBy(_._2)._1
+//    res3: String = oranges
+
+    println(scala.io.Source.fromURL(mostCommonUri).mkString)
   }
 }
